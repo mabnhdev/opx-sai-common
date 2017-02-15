@@ -44,6 +44,7 @@
 #include "sai_switch_init_config.h"
 #include "sai_qos_api_utils.h"
 #include "sai_hash_api_utils.h"
+#include <stdio.h>
 
 static sai_status_t sai_switch_mac_address_set(const sai_mac_t *mac)
 {
@@ -784,6 +785,8 @@ sai_status_t sai_switch_initialize(sai_switch_profile_id_t profile_id,
     sai_status_t ret_val = SAI_STATUS_UNINITIALIZED;
     sai_switch_info_t *sai_switch_info = NULL;
     const char *sai_init_config_file = NULL;
+    const int MAX_DIR_SIZE = 256;
+    char str[MAX_DIR_SIZE];
 
     STD_ASSERT(switch_notifications != NULL);
     SAI_SWITCH_LOG_TRACE("SDK Init: Profileid %d hwid %s microcode %s",
@@ -821,8 +824,14 @@ sai_status_t sai_switch_initialize(sai_switch_profile_id_t profile_id,
 
         sai_init_config_file = sai_switch_init_config_file_get(profile_id);
         if (sai_init_config_file == NULL) {
-            SAI_SWITCH_LOG_TRACE("Using default switch init config file %s", SAI_INIT_CONFIG_FILE);
-            ret_val = sai_switch_init_config(switch_id, SAI_INIT_CONFIG_FILE);
+            if (getenv("OPX_INSTALL_PATH")) {
+                snprintf(str, MAX_DIR_SIZE, "%s%s", getenv("OPX_INSTALL_PATH"), SAI_INIT_CONFIG_FILE);
+                SAI_SWITCH_LOG_TRACE("Using switch init config file %s", str);
+                ret_val = sai_switch_init_config(switch_id, str);
+            } else {
+                SAI_SWITCH_LOG_TRACE("Using default switch init config file %s", SAI_INIT_CONFIG_FILE);
+                ret_val = sai_switch_init_config(switch_id, SAI_INIT_CONFIG_FILE);
+            }
         } else {
             SAI_SWITCH_LOG_TRACE("Using switch init config file %s", sai_init_config_file);
             ret_val = sai_switch_init_config(switch_id, sai_init_config_file);
