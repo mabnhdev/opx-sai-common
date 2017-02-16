@@ -211,7 +211,10 @@ sai_status_t sai_shell_start(void) {
 
     SAI_SWITCH_LOG_TRACE("SAI Shell initialized");
 
-    strncpy(shell.path,SAI_SHELL_CMD_SOCK,sizeof(shell.path)-1);
+    snprintf(shell.path, sizeof(shell.path), "%s%s",
+             getenv("OPX_DATA_PATH") ? getenv("OPX_DATA_PATH") : "",
+             SAI_SHELL_CMD_SOCK);
+
     shell.param = NULL;
     shell.func = npu_shell_proxy;
     if ((er = std_cmd_redir_init(&shell)) != STD_ERR_OK) {
